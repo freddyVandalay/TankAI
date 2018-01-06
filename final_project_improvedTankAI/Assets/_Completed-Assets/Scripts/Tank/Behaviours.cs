@@ -20,6 +20,8 @@ namespace Complete
                     return SpinBehaviour(-0.05f, 1f);
                 case 2:
                     return TrackBehaviour();
+				case 3:
+					return ImprovedBehaviour(); 
 
                 default:
                     return new Root (new Action(()=> Turn(0.1f)));
@@ -70,6 +72,29 @@ namespace Complete
                 )
             );
         }
+
+		private Root ImprovedBehaviour() {
+			return new Root(
+				new Service(0.2f, UpdatePerception,
+					new Selector(
+						new BlackboardCondition("targetOffCentre",
+							Operator.IS_SMALLER_OR_EQUAL, 0.1f,
+							Stops.IMMEDIATE_RESTART,
+							// Stop turning and fire
+							new Sequence(StopTurning(),
+								new Wait(2f),
+								RandomFire())),
+						new BlackboardCondition("targetOnRight",
+							Operator.IS_EQUAL, true,
+							Stops.IMMEDIATE_RESTART,
+							// Turn right toward target
+							new Action(() => Turn(0.2f))),
+						// Turn left toward target
+						new Action(() => Turn(-0.2f))
+					)
+				)
+			);
+		}
 
         private void UpdatePerception() {
             Vector3 targetPos = TargetTransform().position;
