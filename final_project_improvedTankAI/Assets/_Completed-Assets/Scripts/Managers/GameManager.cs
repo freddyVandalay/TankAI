@@ -48,6 +48,14 @@ namespace Complete
                 m_Tanks[i].m_PlayerNumber = i + 1;
                 m_Tanks[i].Setup();
             }
+
+            foreach (TankManager tank in m_Tanks)
+            {
+                foreach (TankManager target in m_Tanks)
+                {
+                    if (tank != target) tank.AddTarget(target.m_Instance);
+                }
+            }
         }
 
 

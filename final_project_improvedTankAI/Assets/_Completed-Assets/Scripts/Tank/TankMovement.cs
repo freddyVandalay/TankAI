@@ -12,6 +12,8 @@ namespace Complete
         public AudioClip m_EngineDriving;           // Audio to play when the tank is moving.
 		public float m_PitchRange = 0.2f;           // The amount by which the pitch of the engine noises can vary.
 
+        public bool m_NPC;                          // Is shooting AI controlled?
+
         private string m_MovementAxisName;          // The name of the input axis for moving forward and back.
         private string m_TurnAxisName;              // The name of the input axis for turning.
         private Rigidbody m_Rigidbody;              // Reference used to move the tank.
@@ -19,6 +21,10 @@ namespace Complete
         private float m_TurnInputValue;             // The current value of the turn input.
         private float m_OriginalPitch;              // The pitch of the audio source at the start of the scene.
         private ParticleSystem[] m_particleSystems; // References to all the particles systems used by the Tanks
+
+        private float m_AIMovement; // The current value of the AI's movement input.
+
+        private float m_AITurn; // The current value of the AI's turn input.
 
         private void Awake ()
         {
@@ -73,12 +79,16 @@ namespace Complete
         private void Update ()
         {
             // Store the value of both input axes.
-            m_MovementInputValue = Input.GetAxis (m_MovementAxisName);
-            m_TurnInputValue = Input.GetAxis (m_TurnAxisName);
+            if (m_NPC) {
+                m_MovementInputValue = m_AIMovement;
+                m_TurnInputValue = m_AITurn;
+            } else {
+                m_MovementInputValue = Input.GetAxis (m_MovementAxisName);
+                m_TurnInputValue = Input.GetAxis (m_TurnAxisName);
+            }
 
             EngineAudio ();
         }
-
 
         private void EngineAudio ()
         {
@@ -115,7 +125,6 @@ namespace Complete
             Turn ();
         }
 
-
         private void Move ()
         {
             // Create a vector in the direction the tank is facing with a magnitude based on the input, speed and the time between frames.
@@ -136,6 +145,18 @@ namespace Complete
 
             // Apply this rotation to the rigidbody's rotation.
             m_Rigidbody.MoveRotation (m_Rigidbody.rotation * turnRotation);
+        }
+
+        public void AIMove(float move)
+        {           
+                // Clamp the value to [-1,1] 
+                m_AIMovement = (move > 1) ? 1 : (move < -1) ? -1 : move;
+        }
+
+        public void AITurn(float turn)
+        {           
+                // Clamp the value to [-1,1] 
+                m_AITurn = (turn > 1) ? 1 : (turn < -1) ? -1 : turn;
         }
     }
 }
