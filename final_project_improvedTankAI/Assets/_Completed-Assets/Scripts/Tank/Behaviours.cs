@@ -457,8 +457,6 @@ namespace Complete
 
 
 			blackboard["clearPathToEnemy"] = LookForTarget(targetPos, localPos);
-			//blackboard[] = Vector3()
-			//blackboard["obsticleBehind"]
         }
     }
 }

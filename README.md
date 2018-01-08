@@ -25,9 +25,23 @@ Behaviour 2: "Attack on sight"
 	
 Methodology
 
+Navigation: To be a to create some form of awareness of it the world around the NPC, the implementation of "sensors" or more specificly 6 vectors are being used.
+One straight ahead and two vectors 45 degress one each side of the middle vector. And the same concept is applied back point in the opposite direction.
+(The sensors pointing towards the back are not used in this implementation). These vectors ar used to send out ray casts to detect colossions with objects
+within the world. Each vectors collision status is stored with a boolean value on the blackboard. Depending on the status pattern of the vectors combined 
+new blackboard values can be created. 
+	Ex 1. If vector pointing straight head and the vector pointing forward 45 degrees to the right are both detecting collision, 
+	a sharp turn to the left will be executed. 
+	Ex 2. If only the vector pointing forward 45 degrees to the right is detecting, only a slight turn the left will be executed to avoid the obsticle.
+
+
+Unpredictability: To give the NPC a unpredictble element, a  combination of Selectors and the NPBehave.Random have been the choosen method. Using a 
+random selector is a popular method to use to create this kind of behaviour but were no found in the NPBehave library and therefore this alternative
+method were used instead to recreate a similar behaviour. 
+
+To give the NPC a slight realistic feel, travelling speed is on some occations slowed down before avoidig an obsticle. Or sometimes if the NPC reaches
+a dead end it sometimes reverse and turn while sometimes it stops and turns. These are a implementation design to make the NPC look clever and more realistic. 
+This behaviour is acheived by assigning a probability value for a node to be executed using NPBehave.Random. 
 
 
 
-
-Conclusion
-The two main goals for this project was to improve navigation and add another level of unpredictibility to the AI. 
