@@ -46,3 +46,8 @@ This behaviour is acheived by assigning a probability value for a node to be exe
 
 Video tech demo:
 https://youtu.be/V2X4bdxGEeM
+
+Resources:
+https://forum.unity.com/threads/help-how-to-create-an-ai-script-that-will-avoid-obstacles-by-moving-up-or-down-in-2d-environment.450027/
+
+
