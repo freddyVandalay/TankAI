@@ -7,17 +7,15 @@ namespace Complete
     public partial class TankAI : MonoBehaviour
     {
 		//private Blackboard ownBlackboard = new Blackboard();
-
-        private Root CreateBehaviourTree() {
-
-            switch (m_Behaviour) {
-
-                case 1:
+		private Root CreateBehaviourTree() {
+			switch (m_Behaviour) {
+				case 1:
 					//Enemy travel around the map and seems harmless.
 					return LostBehaviour(); 
-					
+				case 2:
+					return AttackBehaviour ();
 
-                default:
+				default:
                     return new Root (new Action(()=> Turn(0.1f)));
             }
         }
@@ -156,6 +154,32 @@ namespace Complete
 
 		}
 
+		/*Look For Target*/
+		//Method that returns true if path to target is clear
+		//Using a Raycast to create awareness of enemy tank
+		//reused Method from Coursework 1
+		private bool LookForTarget(Vector3 targetPos, Vector3 localPos)
+		{
+
+			//Debug.Log("LOOK FOR TARGET METHOD: ");
+
+			Vector3 elevatedVector = this.transform.position;
+			elevatedVector.y = 0.7f;//Allows the AI to "see" overcertain objects.
+
+			RaycastHit hit;
+			Ray eyes = new Ray(elevatedVector, targetPos - this.transform.position);
+
+			//Debug.DrawRay(elevatedVector, (targetPos - this.transform.position), Color.blue);
+			if (Physics.Raycast(eyes, out hit, localPos.magnitude) && hit.collider.gameObject.name == "CompleteTank(Clone)")
+			{
+				//Debug.Log("Enemy TRUE: " + hit.collider);
+				//Debug.Log("Enemy TRUE: " + hit.transform.position);
+				//Debug.Log("You're target");
+				return true; //Target was found
+			}
+			//Debug.Log("Enemy FALSE: " + hit.collider);
+			return false;//Target wasn't found
+		}
 
         /* My Behaviour Tree */
 
@@ -196,8 +220,8 @@ namespace Complete
 						//Obsticle in front turn left or right
 						new BlackboardCondition("obsticleInFront", Operator.IS_EQUAL,true, Stops.IMMEDIATE_RESTART,
 							new Selector(
-								new TimeMin(0.3f, new NPBehave.Random(0.5f, new Action(() => Turn(-0.5f)))), 
-								new TimeMin(0.3f, new NPBehave.Random(1f, new Action(() => Turn(0.5f))))
+								new TimeMin(0.5f, new NPBehave.Random(0.5f, new Action(() => Turn(-0.5f)))), 
+								new TimeMin(0.5f, new NPBehave.Random(1f, new Action(() => Turn(0.5f))))
 							)
 						),
 						//Perform smooth left turn
@@ -223,6 +247,73 @@ namespace Complete
 			); 
 		}
 
+
+		private Root AttackBehaviour() {
+			return new Root(
+				new Service(0.2f, UpdatePerception,
+					new Selector(
+						new Action(() => Debug.Log("YES")),
+						//Steering tree
+						new Selector(
+							//Reached dead end
+							new BlackboardCondition("deadEnd", Operator.IS_EQUAL,true, Stops.IMMEDIATE_RESTART,
+								new Sequence( 
+									//Stop or reverse
+									new Selector(
+										new NPBehave.Random(0.5f, new Action(() => Move(0f))), 
+										new NPBehave.Random(1f, new TimeMin(1f,new Action(() => Move(-0.3f))) )
+									),
+									//Turn left or right
+									new Selector(
+										new NPBehave.Random(0.5f, new TimeMin(4f, new Action(() => Turn(0.5f)))), 
+										new NPBehave.Random(1f, new TimeMin(4f,new Action(() => Turn(-0.5f))) ) 
+									)
+								)
+							),
+							//Slows down and Perform sharp left turn
+							new BlackboardCondition("turnLeft", Operator.IS_EQUAL,true, Stops.IMMEDIATE_RESTART,
+								new Sequence( 
+									new Action(()=> Move(0.3f)), 
+									new Action(() => Turn(-0.5f))
+								)
+							),
+							//Slows down and perform sharp right turn
+							new BlackboardCondition("turnRight", Operator.IS_EQUAL,true, Stops.IMMEDIATE_RESTART,
+								new Sequence( 
+									new Action(()=> Move(0.3f)), 
+									new Action(() => Turn(0.5f))
+								)
+							),
+							//Obsticle in front turn left or right
+							new BlackboardCondition("obsticleInFront", Operator.IS_EQUAL,true, Stops.IMMEDIATE_RESTART,
+								new Selector(
+									new TimeMin(0.5f, new NPBehave.Random(0.5f, new Action(() => Turn(-0.5f)))), 
+									new TimeMin(0.5f, new NPBehave.Random(1f, new Action(() => Turn(0.5f))))
+								)
+							),
+							//Perform smooth left turn
+							new BlackboardCondition("smoothTurnLeft", Operator.IS_EQUAL,true, Stops.IMMEDIATE_RESTART,
+								new Selector(
+									new NPBehave.Random(0.5f, new Action(() => Turn(-0.1f))),new NPBehave.Random(1f, new Action(() => Turn(-0.3f)))
+								)
+							),
+							//Perform smooth right turn
+							new BlackboardCondition("smoothTurnRight", Operator.IS_EQUAL,true, Stops.IMMEDIATE_RESTART,
+								new Selector(
+									new NPBehave.Random(0.5f, new Action(() => Turn(0.1f))),
+									new NPBehave.Random(1f, new Action(() => Turn(0.3f)))
+								)
+							),
+							//Path is clear Go straight ahead
+							new Sequence(
+								new Action(() => Turn(0f)), 
+								new Action(() => Move(0.5f))
+							)
+						)
+					)
+				)
+			); 
+		}
         private void UpdatePerception() {
 			//Update sensors blackboards
 			Awareness();
@@ -308,6 +399,7 @@ namespace Complete
 			}
 
 
+			blackboard["clearPathToEnemy"] = LookForTarget(targetPos, localPos);
 
 			//blackboard["obsticleBehind"]
         }
