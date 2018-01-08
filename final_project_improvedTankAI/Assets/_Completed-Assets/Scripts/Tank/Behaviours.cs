@@ -19,11 +19,8 @@ namespace Complete
             switch (m_Behaviour) {
 
                 case 1:
-                    return SpinBehaviour(-0.05f, 1f);
-                case 2:
-                    return TrackBehaviour();
-				case 3:
 					return ImprovedBehaviour(); 
+					
 
                 default:
                     return new Root (new Action(()=> Turn(0.1f)));
@@ -174,40 +171,8 @@ namespace Complete
 		}
 
 
-        /* Example behaviour trees */
+        /* My Behaviour Tree */
 
-        // Constantly spin and fire on the spot 
-        private Root SpinBehaviour(float turn, float shoot) {
-            return new Root(new Sequence(
-                        new Action(() => Turn(turn)),
-                        new Action(() => Fire(shoot))
-                    ));
-        }
-
-        // Turn to face your opponent and fire
-        private Root TrackBehaviour() {
-            return new Root(
-                new Service(0.2f, UpdatePerception,
-                    new Selector(
-                        new BlackboardCondition("targetOffCentre",
-                                                Operator.IS_SMALLER_OR_EQUAL, 0.1f,
-                                                Stops.IMMEDIATE_RESTART,
-                            // Stop turning and fire
-                            new Sequence(StopTurning(),
-                                        new Wait(2f),
-                                        RandomFire())),
-                        new BlackboardCondition("targetOnRight",
-                                                Operator.IS_EQUAL, true,
-                                                Stops.IMMEDIATE_RESTART,
-                            // Turn right toward target
-                            new Action(() => Turn(0.2f))),
-                            // Turn left toward target
-                            new Action(() => Turn(-0.2f))
-                    )
-                )
-            );
-        }
-	
 		private Root ImprovedBehaviour() {
 			return new Root(
 				new Service(0.2f, UpdatePerception,
@@ -215,24 +180,31 @@ namespace Complete
 						new BlackboardCondition("deadEnd", Operator.IS_EQUAL,true, Stops.IMMEDIATE_RESTART,
 							new Sequence( 
 								new Selector(
-									new NPBehave.Random(0.5f, new TimeMin(0.5f, new Action(() => Move(0f)))), new NPBehave.Random(1f, new TimeMin(0.5f,new Action(() => Move(-0.5f))) )
+									new NPBehave.Random(0.5f, new Action(() => Move(0f))), 
+									new NPBehave.Random(1f, new TimeMin(1f,new Action(() => Move(-0.5f))) )
 								), 
 								new Selector(
-									new NPBehave.Random(0.5f, new TimeMin(0.55f, new Action(() => Turn(0.5f)))), new NPBehave.Random(1f, new TimeMin(0.5f,new Action(() => Turn(-0.5f))) ) 
+									new NPBehave.Random(0.5f, new TimeMin(4f, new Action(() => Turn(0.5f)))), 
+									new NPBehave.Random(1f, new TimeMin(4f,new Action(() => Turn(-0.5f))) ) 
 								)
 							)
 						),
 						new BlackboardCondition("turnLeft", Operator.IS_EQUAL,true, Stops.IMMEDIATE_RESTART,
-							new Sequence( new Action(()=> Move(0.2f)), new Action(() => Turn(-0.5f))
+							new Sequence( 
+								new Action(()=> Move(0.2f)), 
+								new Action(() => Turn(-0.5f))
 							)
 						),
 						new BlackboardCondition("turnRight", Operator.IS_EQUAL,true, Stops.IMMEDIATE_RESTART,
-							new Sequence( new Action(()=> Move(0.2f)), new Action(() => Turn(0.5f))
+							new Sequence( 
+								new Action(()=> Move(0.2f)), 
+								new Action(() => Turn(0.5f))
 							)
 						),
 						new BlackboardCondition("obsticleInFront", Operator.IS_EQUAL,true, Stops.IMMEDIATE_RESTART,
 							new Selector(
-								new TimeMin(0.3f, new NPBehave.Random(0.5f, new Action(() => Turn(-0.5f)))), new TimeMin(0.3f, new NPBehave.Random(1f, new Action(() => Turn(0.5f))))
+								new TimeMin(0.3f, new NPBehave.Random(0.5f, new Action(() => Turn(-0.5f)))), 
+								new TimeMin(0.3f, new NPBehave.Random(1f, new Action(() => Turn(0.5f))))
 							)
 						),
 						new BlackboardCondition("smoothTurnLeft", Operator.IS_EQUAL,true, Stops.IMMEDIATE_RESTART,
@@ -242,11 +214,14 @@ namespace Complete
 						),
 						new BlackboardCondition("smoothTurnRight", Operator.IS_EQUAL,true, Stops.IMMEDIATE_RESTART,
 							new Selector(
-								new NPBehave.Random(0.5f, new Action(() => Turn(0.1f))),new NPBehave.Random(1f, new Action(() => Turn(0.3f)))
+								new NPBehave.Random(0.5f, new Action(() => Turn(0.1f))),
+								new NPBehave.Random(1f, new Action(() => Turn(0.3f)))
 							)
 						),
-
-						new Sequence(new Action(() => Turn(0f)), new Action(() => Move(0.5f))
+						//Path is clear
+						new Sequence(
+							new Action(() => Turn(0f)), 
+							new Action(() => Move(0.5f))
 						)
 					)
 				)
@@ -265,31 +240,10 @@ namespace Complete
             blackboard["targetOnRight"] = heading.x > 0;
             blackboard["targetOffCentre"] = Mathf.Abs(heading.x);
 			//Debug.Log (blackboard.Get<bool>("obsticleInFront"));
+
 			//My additions
-			if(blackboard.Get<bool>("obsticleInFront") && blackboard.Get<bool>("obsticleInFrontRight") && blackboard.Get<bool>("obsticleInFrontLeft")){
-				blackboard ["turnRight"] = false;
-				blackboard ["turnLeft"] = false;
-				blackboard ["deadEnd"] = true;
-				blackboard ["smoothTurnLeft"] = false;
-				blackboard ["smoothTurnRight"] = false;
-				Debug.Log ("DeadEnd");
-			}
-			if(blackboard.Get<bool>("obsticleInFront") && blackboard.Get<bool>("obsticleInFrontRight") && !blackboard.Get<bool>("obsticleInFrontLeft")){
-				blackboard ["deadEnd"] = false;
-				blackboard ["turnRight"] = false;
-				blackboard ["turnLeft"] = true;
-				blackboard ["smoothTurnLeft"] = false;
-				blackboard ["smoothTurnRight"] = false;
-				Debug.Log ("Left");
-			}
-			if (blackboard.Get<bool> ("obsticleInFront") && !blackboard.Get<bool> ("obsticleInFrontRight") && blackboard.Get<bool> ("obsticleInFrontLeft")) {
-				blackboard ["deadEnd"] = false;
-				blackboard ["turnLeft"] = false;
-				blackboard ["turnRight"] = true;
-				blackboard ["smoothTurnLeft"] = false;
-				blackboard ["smoothTurnRight"] = false;
-				Debug.Log ("Right");
-			} 
+
+			//Path is clear
 			if (!blackboard.Get<bool> ("obsticleInFront") && !blackboard.Get<bool> ("obsticleInFrontRight") && !blackboard.Get<bool> ("obsticleInFrontLeft")) {
 				blackboard ["deadEnd"] = false;
 				blackboard ["turnLeft"] = false;
@@ -298,6 +252,34 @@ namespace Complete
 				blackboard ["smoothTurnRight"] = false;
 				Debug.Log ("Clear");
 			} 
+			//Deadend reached
+			if(blackboard.Get<bool>("obsticleInFront") && blackboard.Get<bool>("obsticleInFrontRight") && blackboard.Get<bool>("obsticleInFrontLeft")){
+				blackboard ["turnRight"] = false;
+				blackboard ["turnLeft"] = false;
+				blackboard ["deadEnd"] = true;
+				blackboard ["smoothTurnLeft"] = false;
+				blackboard ["smoothTurnRight"] = false;
+				Debug.Log ("DeadEnd");
+			}
+			//Obstiles to the front and to the right
+			if(blackboard.Get<bool>("obsticleInFront") && blackboard.Get<bool>("obsticleInFrontRight") && !blackboard.Get<bool>("obsticleInFrontLeft")){
+				blackboard ["deadEnd"] = false;
+				blackboard ["turnRight"] = false;
+				blackboard ["turnLeft"] = true;
+				blackboard ["smoothTurnLeft"] = false;
+				blackboard ["smoothTurnRight"] = false;
+				Debug.Log ("Left");
+			}
+			//Obstiles to the front and to the left
+			if (blackboard.Get<bool> ("obsticleInFront") && !blackboard.Get<bool> ("obsticleInFrontRight") && blackboard.Get<bool> ("obsticleInFrontLeft")) {
+				blackboard ["deadEnd"] = false;
+				blackboard ["turnLeft"] = false;
+				blackboard ["turnRight"] = true;
+				blackboard ["smoothTurnLeft"] = false;
+				blackboard ["smoothTurnRight"] = false;
+				Debug.Log ("Right");
+			} 
+			//Obsticles to the right
 			if (!blackboard.Get<bool> ("obsticleInFront") && blackboard.Get<bool> ("obsticleInFrontRight") && !blackboard.Get<bool> ("obsticleInFrontLeft")) {
 				blackboard ["deadEnd"] = false;
 				blackboard ["turnLeft"] = false;
@@ -306,6 +288,7 @@ namespace Complete
 				blackboard ["smoothTurnRight"] = false;
 				Debug.Log ("smooth left");
 			}
+			//Obstices to the left
 			if (!blackboard.Get<bool> ("obsticleInFront") && !blackboard.Get<bool> ("obsticleInFrontRight") && blackboard.Get<bool> ("obsticleInFrontLeft")) {
 				blackboard ["deadEnd"] = false;
 				blackboard ["turnLeft"] = false;
@@ -314,6 +297,7 @@ namespace Complete
 				blackboard ["smoothTurnRight"] = true;
 				Debug.Log ("smooth right");
 			}
+			//Obsticles to the left and right
 			if (!blackboard.Get<bool> ("obsticleInFront") && blackboard.Get<bool> ("obsticleInFrontRight") && blackboard.Get<bool> ("obsticleInFrontLeft")) {
 				blackboard ["deadEnd"] = false;
 				blackboard ["turnLeft"] = false;
