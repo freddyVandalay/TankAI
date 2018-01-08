@@ -13,7 +13,7 @@ namespace Complete
 					//Enemy travel around the map and seems harmless.
 					return LostBehaviour(); 
 				case 2:
-					return AttackBehaviour ();
+					return AttackOnSightBehaviour ();
 
 				default:
                     return new Root (new Action(()=> Turn(0.1f)));
@@ -254,7 +254,7 @@ namespace Complete
 		 * A NPC that randomly covers the map until it spots theenemy tank
 		 * Approches the enemy and shots within a certain range
 		 */
-		private Root AttackBehaviour() {
+		private Root AttackOnSightBehaviour() {
 			return new Root(
 				new Service(0.2f, UpdatePerception,
 					new Selector(
