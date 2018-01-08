@@ -45,10 +45,7 @@ namespace Complete
 		/*Eye of sight*/
 		//Acts like a sensor for the AI tank
 		private void Awareness(){
-			blackboard["obsticleInFront"]= false;
-			blackboard["obsticleInFrontRight"]= false;
-			blackboard["obsticleInFrontLeft"]= false;
-			blackboard["obsticleInFrontLeft"]= false;
+
 			//blackboard["obsticleInFrontLeft"]= false;
 			//Debug.Log("EYE OF SIGHT METHOD:");
 			Vector3 localPos = this.transform.position;
@@ -74,11 +71,11 @@ namespace Complete
 
 			//Debug rays
 			Debug.DrawRay(this.transform.position, this.transform.forward * 7, Color.red);
-			Debug.DrawRay(this.transform.position, rightEye * 10, Color.green);
-			Debug.DrawRay(this.transform.position, leftEye * 10, Color.blue);
-			Debug.DrawRay(this.transform.position, -this.transform.forward * 10, Color.black);
-			Debug.DrawRay(this.transform.position, -rightEye * 10, Color.white);
-			Debug.DrawRay(this.transform.position, -leftEye * 10, Color.yellow);
+			Debug.DrawRay(this.transform.position, rightEye * 7, Color.green);
+			Debug.DrawRay(this.transform.position, leftEye * 7, Color.blue);
+			Debug.DrawRay(this.transform.position, -this.transform.forward * 7, Color.black);
+			Debug.DrawRay(this.transform.position, -rightEye * 7, Color.white);
+			Debug.DrawRay(this.transform.position, -leftEye * 7, Color.yellow);
 
 			//Debug.DrawRay(eyesRight * 10, Color.red);
 			if (Physics.Raycast (eyesFwd, out hit, 10) && hit.collider.gameObject.name != "CompleteTank(Clone)") {
@@ -126,9 +123,7 @@ namespace Complete
 			} else {
 				blackboard["obsticleInFrontLeft"]= false;
 			}
-			/*
-			if (Physics.Raycast(eyesFwdRight, out hit, 10) && hit.collider.gameObject.name != "CompleteTank(Clone)")
-			{
+			if (Physics.Raycast (eyesBck, out hit, 7) && hit.collider.gameObject.name != "CompleteTank(Clone)") {
 				collHit = hit.point;
 				obsticle = hit.transform.position;
 
@@ -138,10 +133,44 @@ namespace Complete
 				//Debug.Log(collHit.z-obsticle.z);
 
 				//blackboard["obsticleOnRight"] = collHit.z - obsticle.z > 0;
-				Debug.Log("Too the right!!" + hit.collider);
-				blackboard["obsticleToTheRight"]= true;
+				Debug.Log ("Too close to the left!!" + hit.collider);
+				blackboard ["obsticleInBack"] = true;
+			} else {
+				blackboard["obsticleInBack"]= false;
 			}
-			*/
+
+			if (Physics.Raycast (eyesBckRight, out hit, 7) && hit.collider.gameObject.name != "CompleteTank(Clone)") {
+				collHit = hit.point;
+				obsticle = hit.transform.position;
+
+				//Debug.Log("Too close!!" + hit.collider);
+				//Debug.Log("Object hit: " + obsticle);
+				//Debug.Log("Coll hit: " + collHit);
+				//Debug.Log(collHit.z-obsticle.z);
+
+				//blackboard["obsticleOnRight"] = collHit.z - obsticle.z > 0;
+				Debug.Log ("Too close to the left!!" + hit.collider);
+				blackboard ["obsticleInBackRight"] = true;
+			} else {
+				blackboard["obsticleInBackRight"]= false;
+			}
+
+			if (Physics.Raycast (eyesBckLeft, out hit, 7) && hit.collider.gameObject.name != "CompleteTank(Clone)") {
+				collHit = hit.point;
+				obsticle = hit.transform.position;
+
+				//Debug.Log("Too close!!" + hit.collider);
+				//Debug.Log("Object hit: " + obsticle);
+				//Debug.Log("Coll hit: " + collHit);
+				//Debug.Log(collHit.z-obsticle.z);
+
+				//blackboard["obsticleOnRight"] = collHit.z - obsticle.z > 0;
+				Debug.Log ("Too close to the left!!" + hit.collider);
+				blackboard ["obsticleInBackLeft"] = true;
+			} else {
+				blackboard["obsticleInBackLeft"]= false;
+			}
+
 		}
 
 
@@ -184,26 +213,39 @@ namespace Complete
 				new Service(0.2f, UpdatePerception,
 					new Selector(
 						new BlackboardCondition("deadEnd", Operator.IS_EQUAL,true, Stops.IMMEDIATE_RESTART,
-							new Sequence( new Action(()=> Move(-0.5f)), new Action(() => Turn(0.5f))
+							new Sequence( 
+								new Selector(
+									new NPBehave.Random(0.5f, new TimeMin(0.5f, new Action(() => Move(0f)))), new NPBehave.Random(1f, new TimeMin(0.5f,new Action(() => Move(-0.5f))) )
+								), 
+								new Selector(
+									new NPBehave.Random(0.5f, new TimeMin(0.55f, new Action(() => Turn(0.5f)))), new NPBehave.Random(1f, new TimeMin(0.5f,new Action(() => Turn(-0.5f))) ) 
+								)
 							)
 						),
 						new BlackboardCondition("turnLeft", Operator.IS_EQUAL,true, Stops.IMMEDIATE_RESTART,
-							new Sequence( new Action(()=> Move(0f)), new Action(() => Turn(-0.5f))
+							new Sequence( new Action(()=> Move(0.2f)), new Action(() => Turn(-0.5f))
 							)
 						),
 						new BlackboardCondition("turnRight", Operator.IS_EQUAL,true, Stops.IMMEDIATE_RESTART,
-							new Sequence( new Action(()=> Move(0f)), new Action(() => Turn(0.5f))
+							new Sequence( new Action(()=> Move(0.2f)), new Action(() => Turn(0.5f))
 							)
 						),
 						new BlackboardCondition("obsticleInFront", Operator.IS_EQUAL,true, Stops.IMMEDIATE_RESTART,
 							new Selector(
-								new BlackboardCondition("obsticleOnRight", Operator.IS_EQUAL,true, Stops.IMMEDIATE_RESTART,
-									new Sequence(new Action (() => Turn(-0.5f)), new Action (() => Move(0f))
-									)
-								),
-								new Action(() => Turn(0.5f))
+								new TimeMin(0.3f, new NPBehave.Random(0.5f, new Action(() => Turn(-0.5f)))), new TimeMin(0.3f, new NPBehave.Random(1f, new Action(() => Turn(0.5f))))
 							)
 						),
+						new BlackboardCondition("smoothTurnLeft", Operator.IS_EQUAL,true, Stops.IMMEDIATE_RESTART,
+							new Selector(
+								new NPBehave.Random(0.5f, new Action(() => Turn(-0.1f))),new NPBehave.Random(1f, new Action(() => Turn(-0.3f)))
+							)
+						),
+						new BlackboardCondition("smoothTurnRight", Operator.IS_EQUAL,true, Stops.IMMEDIATE_RESTART,
+							new Selector(
+								new NPBehave.Random(0.5f, new Action(() => Turn(0.1f))),new NPBehave.Random(1f, new Action(() => Turn(0.3f)))
+							)
+						),
+
 						new Sequence(new Action(() => Turn(0f)), new Action(() => Move(0.5f))
 						)
 					)
@@ -228,26 +270,58 @@ namespace Complete
 				blackboard ["turnRight"] = false;
 				blackboard ["turnLeft"] = false;
 				blackboard ["deadEnd"] = true;
+				blackboard ["smoothTurnLeft"] = false;
+				blackboard ["smoothTurnRight"] = false;
 				Debug.Log ("DeadEnd");
 			}
 			if(blackboard.Get<bool>("obsticleInFront") && blackboard.Get<bool>("obsticleInFrontRight") && !blackboard.Get<bool>("obsticleInFrontLeft")){
 				blackboard ["deadEnd"] = false;
 				blackboard ["turnRight"] = false;
 				blackboard ["turnLeft"] = true;
+				blackboard ["smoothTurnLeft"] = false;
+				blackboard ["smoothTurnRight"] = false;
 				Debug.Log ("Left");
 			}
 			if (blackboard.Get<bool> ("obsticleInFront") && !blackboard.Get<bool> ("obsticleInFrontRight") && blackboard.Get<bool> ("obsticleInFrontLeft")) {
 				blackboard ["deadEnd"] = false;
 				blackboard ["turnLeft"] = false;
 				blackboard ["turnRight"] = true;
+				blackboard ["smoothTurnLeft"] = false;
+				blackboard ["smoothTurnRight"] = false;
 				Debug.Log ("Right");
 			} 
 			if (!blackboard.Get<bool> ("obsticleInFront") && !blackboard.Get<bool> ("obsticleInFrontRight") && !blackboard.Get<bool> ("obsticleInFrontLeft")) {
 				blackboard ["deadEnd"] = false;
 				blackboard ["turnLeft"] = false;
 				blackboard ["turnRight"] = false;
+				blackboard ["smoothTurnLeft"] = false;
+				blackboard ["smoothTurnRight"] = false;
 				Debug.Log ("Clear");
 			} 
+			if (!blackboard.Get<bool> ("obsticleInFront") && blackboard.Get<bool> ("obsticleInFrontRight") && !blackboard.Get<bool> ("obsticleInFrontLeft")) {
+				blackboard ["deadEnd"] = false;
+				blackboard ["turnLeft"] = false;
+				blackboard ["turnRight"] = false;
+				blackboard ["smoothTurnLeft"] = true;
+				blackboard ["smoothTurnRight"] = false;
+				Debug.Log ("smooth left");
+			}
+			if (!blackboard.Get<bool> ("obsticleInFront") && !blackboard.Get<bool> ("obsticleInFrontRight") && blackboard.Get<bool> ("obsticleInFrontLeft")) {
+				blackboard ["deadEnd"] = false;
+				blackboard ["turnLeft"] = false;
+				blackboard ["turnRight"] = false;
+				blackboard ["smoothTurnLeft"] = false;
+				blackboard ["smoothTurnRight"] = true;
+				Debug.Log ("smooth right");
+			}
+			if (!blackboard.Get<bool> ("obsticleInFront") && blackboard.Get<bool> ("obsticleInFrontRight") && blackboard.Get<bool> ("obsticleInFrontLeft")) {
+				blackboard ["deadEnd"] = false;
+				blackboard ["turnLeft"] = false;
+				blackboard ["turnRight"] = false;
+				blackboard ["smoothTurnLeft"] = false;
+				blackboard ["smoothTurnRight"] = false;
+				Debug.Log ("Tunnel");
+			}
 
 
 
