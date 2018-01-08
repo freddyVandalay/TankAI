@@ -183,6 +183,9 @@ namespace Complete
 
         /* My Behaviour Tree */
 
+		/*LostBehaviour
+		 *A harmless NPC that just drives around the map avoiding obsticles
+		 */
 		private Root LostBehaviour() {
 			return new Root(
 				new Service(0.2f, UpdatePerception,
@@ -247,7 +250,10 @@ namespace Complete
 			); 
 		}
 
-
+		/* AttackBehaviour
+		 * A NPC that randomly covers the map until it spots theenemy tank
+		 * Approches the enemy and shots within a certain range
+		 */
 		private Root AttackBehaviour() {
 			return new Root(
 				new Service(0.2f, UpdatePerception,
@@ -255,16 +261,32 @@ namespace Complete
 						new BlackboardCondition("clearPathToEnemy", Operator.IS_EQUAL, true, Stops.IMMEDIATE_RESTART,
 							new Selector(
 								new Selector(
+									new BlackboardCondition("targetDistance", Operator.IS_SMALLER_OR_EQUAL, 10f, Stops.IMMEDIATE_RESTART,
+										new Sequence(
+											new Selector(
+												new NPBehave.Random(0.5f,new Action(() => Turn(-0.5f))),
+												new NPBehave.Random(1.0f,new Action(() => Turn(0.5f)))
+											),
+											new TimeMin(2f,
+												new Selector(
+													new NPBehave.Random(0.5f,new Action(() => Move(-0.5f))),
+													new NPBehave.Random(1.0f,new Action(() => Move(0.5f)))
+												)
+											)
+										)
+									),
 									new BlackboardCondition("targetInFront",Operator.IS_EQUAL,true, Stops.IMMEDIATE_RESTART,
 										new Selector(
 											new BlackboardCondition("targetOffCentre", Operator.IS_SMALLER_OR_EQUAL, 0.2f, Stops.IMMEDIATE_RESTART,
 												// Stop turning and fire
 												new Selector(
+											
 													new BlackboardCondition("targetDistance", Operator.IS_SMALLER_OR_EQUAL, 20f, Stops.IMMEDIATE_RESTART,
 														new Sequence(
 															new Action(() => Turn(0.0f)), 
-															new Action(() => Move(0.1f)), 
-															RandomFire())
+															new Action(() => Move(0.0f)), 
+															RandomFire()
+														)
 													),
 													new Sequence(new Action(() => Turn(0)), new Action(() => Move(0.5f)))
 												)
@@ -278,7 +300,7 @@ namespace Complete
 										)
 									),
 									new Sequence(
-										new Action(() => Move(0.1f)),
+										new Action(() => Move(0.2f)),
 										new Selector(
 											new NPBehave.Random(0.5f, new TimeMin(3f, new Action(() => Turn(0.5f)))),
 											new NPBehave.Random(1.0f, new TimeMin(3f, new Action(() => Turn(-0.5f))))
