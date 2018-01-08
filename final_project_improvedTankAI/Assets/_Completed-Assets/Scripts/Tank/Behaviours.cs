@@ -252,7 +252,34 @@ namespace Complete
 			return new Root(
 				new Service(0.2f, UpdatePerception,
 					new Selector(
-						new Action(() => Debug.Log("YES")),
+						new BlackboardCondition("clearPathToEnemy", Operator.IS_EQUAL, true, Stops.IMMEDIATE_RESTART,
+							new Selector(
+								new BlackboardCondition("targetOffCentre",
+									Operator.IS_SMALLER_OR_EQUAL, 0.2f, //Increased the allowens for target to be off centre
+									Stops.IMMEDIATE_RESTART,
+									// Stop turning and fire
+									new Selector(
+
+										new BlackboardCondition("targetDistance",
+											Operator.IS_SMALLER_OR_EQUAL, 20f,
+											Stops.IMMEDIATE_RESTART,
+											new Sequence(new Action(() => Turn(0)), new Action(() => Move(0)), RandomFire())
+
+										),
+										new Sequence(new Action(() => Turn(0)), new Action(() => Move(0.3f)))
+										)
+								),
+								new BlackboardCondition("targetOnRight",
+									Operator.IS_EQUAL, true,
+									Stops.IMMEDIATE_RESTART,
+									// Turn right toward target
+									//Turns in either direction quicker than original
+									new Action(() => Turn(1f))
+								),
+								// Turn left toward target
+								new Action(() => Turn(-0.5f))
+							)//Selector
+						),
 						//Steering tree
 						new Selector(
 							//Reached dead end
@@ -400,7 +427,7 @@ namespace Complete
 
 
 			blackboard["clearPathToEnemy"] = LookForTarget(targetPos, localPos);
-
+			//blackboard[] = Vector3()
 			//blackboard["obsticleBehind"]
         }
     }
