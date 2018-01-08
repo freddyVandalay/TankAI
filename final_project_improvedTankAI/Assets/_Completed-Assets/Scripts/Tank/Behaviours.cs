@@ -254,31 +254,38 @@ namespace Complete
 					new Selector(
 						new BlackboardCondition("clearPathToEnemy", Operator.IS_EQUAL, true, Stops.IMMEDIATE_RESTART,
 							new Selector(
-								new BlackboardCondition("targetOffCentre",
-									Operator.IS_SMALLER_OR_EQUAL, 0.2f, //Increased the allowens for target to be off centre
-									Stops.IMMEDIATE_RESTART,
-									// Stop turning and fire
-									new Selector(
-
-										new BlackboardCondition("targetDistance",
-											Operator.IS_SMALLER_OR_EQUAL, 20f,
-											Stops.IMMEDIATE_RESTART,
-											new Sequence(new Action(() => Turn(0)), new Action(() => Move(0)), RandomFire())
-
-										),
-										new Sequence(new Action(() => Turn(0)), new Action(() => Move(0.3f)))
+								new Selector(
+									new BlackboardCondition("targetInFront",Operator.IS_EQUAL,true, Stops.IMMEDIATE_RESTART,
+										new Selector(
+											new BlackboardCondition("targetOffCentre", Operator.IS_SMALLER_OR_EQUAL, 0.2f, Stops.IMMEDIATE_RESTART,
+												// Stop turning and fire
+												new Selector(
+													new BlackboardCondition("targetDistance", Operator.IS_SMALLER_OR_EQUAL, 20f, Stops.IMMEDIATE_RESTART,
+														new Sequence(
+															new Action(() => Turn(0.0f)), 
+															new Action(() => Move(0.1f)), 
+															RandomFire())
+													),
+													new Sequence(new Action(() => Turn(0)), new Action(() => Move(0.5f)))
+												)
+											),
+											new BlackboardCondition("targetOnRight", Operator.IS_EQUAL, true, Stops.IMMEDIATE_RESTART,
+												// Turn right toward target
+												new Action(() => Turn(0.5f))
+											),
+											// Turn left toward target
+											new Action(() => Turn(-0.5f))
 										)
-								),
-								new BlackboardCondition("targetOnRight",
-									Operator.IS_EQUAL, true,
-									Stops.IMMEDIATE_RESTART,
-									// Turn right toward target
-									//Turns in either direction quicker than original
-									new Action(() => Turn(1f))
-								),
-								// Turn left toward target
-								new Action(() => Turn(-0.5f))
-							)//Selector
+									),
+									new Sequence(
+										new Action(() => Move(0.1f)),
+										new Selector(
+											new NPBehave.Random(0.5f, new TimeMin(3f, new Action(() => Turn(0.5f)))),
+											new NPBehave.Random(1.0f, new TimeMin(3f, new Action(() => Turn(-0.5f))))
+										)
+									)
+								)
+							)
 						),
 						//Steering tree
 						new Selector(
@@ -321,7 +328,8 @@ namespace Complete
 							//Perform smooth left turn
 							new BlackboardCondition("smoothTurnLeft", Operator.IS_EQUAL,true, Stops.IMMEDIATE_RESTART,
 								new Selector(
-									new NPBehave.Random(0.5f, new Action(() => Turn(-0.1f))),new NPBehave.Random(1f, new Action(() => Turn(-0.3f)))
+									new NPBehave.Random(0.5f, new Action(() => Turn(-0.1f))),
+									new NPBehave.Random(1f, new Action(() => Turn(-0.3f)))
 								)
 							),
 							//Perform smooth right turn
@@ -334,7 +342,7 @@ namespace Complete
 							//Path is clear Go straight ahead
 							new Sequence(
 								new Action(() => Turn(0f)), 
-								new Action(() => Move(0.5f))
+								new Action(() => Move(0.3f))
 							)
 						)
 					)
