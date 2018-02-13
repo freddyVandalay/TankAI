@@ -1,8 +1,3 @@
-studentID: fsund001 	moduleID: IS53049A		date: 08/01/2018
-
-Final Project - Behaviour Trees
-
-Introduction
 
 This demo demostrates implementations of behaviour trees using NPBehave for the tank AI in the Tanks demo tutorial. 
 Code from Coursework 1 on Behaviour Trees has been re-used some with modifications. Any re-used code have
@@ -46,8 +41,5 @@ This behaviour is acheived by assigning a probability value for a node to be exe
 
 Video tech demo:
 https://youtu.be/V2X4bdxGEeM
-
-Resources:
-https://forum.unity.com/threads/help-how-to-create-an-ai-script-that-will-avoid-obstacles-by-moving-up-or-down-in-2d-environment.450027/
 
 
