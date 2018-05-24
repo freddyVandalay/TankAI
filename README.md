@@ -20,7 +20,7 @@ Behaviour 2: "Attack on sight"
 	Unlike behaviour one, " attack on sight" has what can be considered as two states. One wander state and one attack state. The NPC is allowed to wander
 	until an enemy is in sigtht, which will promptthe NPC to attack its enemy. 
 	
-***Methodology
+***Methodology***
 
 Navigation: To be able to create some form of awareness of the world around the NPC, the implementation of "sensors" or more specificly, 6 vectors are being used.
 One pointing straight ahead and two vectors 45 degress one each side of the middle vector. And the same concept is applied at the back.
